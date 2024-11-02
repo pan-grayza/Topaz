@@ -63,7 +63,7 @@
             <p
                 class="absolute translate-x-[-50%] pointer-events-none left-1/2 translate-y-[-50%] top-1/2"
             >
-                Quartz
+                Topaz
             </p>
             <button
                 onclick={() => {
