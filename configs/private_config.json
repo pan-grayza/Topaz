@@ -1,0 +1,21 @@
+{
+  "linked_paths": [
+    {
+      "name": "Books",
+      "path": "C:\\Users\\pasna\\Stepan\\Books"
+    }
+  ],
+  "networks": [
+    {
+      "linked_paths": [
+        {
+          "name": "Books",
+          "path": "C:\\Users\\pasna\\Stepan\\Books"
+        }
+      ],
+      "name": "Home",
+      "port": 3030,
+      "type": "localNetwork"
+    }
+  ]
+}
