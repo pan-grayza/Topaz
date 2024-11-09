@@ -33,9 +33,14 @@ pub enum ServerMode {
     Internet,
     DarkWeb,
 }
-#[derive(Default)]
-pub struct ServerState {
-    pub shutdown_tx: Option<tokio::sync::mpsc::Sender<()>>,
+pub struct ServerWrapper {
+    pub handle: Option<actix_web::dev::ServerHandle>,
+}
+
+impl ServerWrapper {
+    pub fn new() -> Self {
+        ServerWrapper { handle: None }
+    }
 }
 
 #[derive(Debug, thiserror::Error)]

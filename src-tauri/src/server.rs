@@ -1,54 +1,39 @@
 use crate::local_dir::read_private_linked_paths;
-use crate::types::{LinkedPath, ServerMode, ServerState};
+use crate::types::{LinkedPath, ServerMode, ServerWrapper};
 use actix_files::Files;
-use actix_web::http::header::{ContentDisposition, DispositionType};
-use actix_web::{get, middleware, web, App, Error, HttpRequest, HttpServer};
-use std::path::PathBuf;
+use actix_web::{get, web, App, HttpServer};
 use std::sync::Arc;
 use tauri::State;
-use tokio::sync::mpsc::{self, Receiver};
 use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn start_file_server_command(
     server_mode: ServerMode,
     linked_paths: Vec<LinkedPath>,
-    state: State<'_, Arc<Mutex<ServerState>>>,
+    server_wrapper: State<'_, Arc<Mutex<ServerWrapper>>>,
 ) -> Result<String, String> {
     if linked_paths.is_empty() {
         return Ok("Choose linked paths to share".into());
     }
-    let mut server_state = state.lock().await;
-
-    // If the server is already running, return an error
-    if server_state.shutdown_tx.is_some() {
-        return Err("Server is already running.".into());
-    }
-    let (shutdown_tx, shutdown_rx) = mpsc::channel(100);
-    server_state.shutdown_tx = Some(shutdown_tx);
-    std::thread::spawn(|| {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        runtime.block_on(async {
-            let _ = file_server(server_mode, linked_paths).await;
-        });
-    });
+    let server_wrapper_clone = server_wrapper.inner().clone();
+    let server_task =
+        tokio::spawn(
+            async move { file_server(server_mode, linked_paths, server_wrapper_clone).await },
+        );
     Ok("Server started!".into())
 }
 
 #[tauri::command]
 pub async fn stop_file_server_command(
-    state: State<'_, Arc<Mutex<ServerState>>>,
+    server_wrapper: State<'_, Arc<Mutex<ServerWrapper>>>,
 ) -> Result<String, String> {
-    let mut server_state = state.lock().await;
-
-    if let Some(shutdown_tx) = server_state.shutdown_tx.take() {
-        shutdown_tx
-            .send(())
-            .await
-            .expect("Failed to send shutdown signal");
-        Ok("Server stopped.".into())
+    let wrapper = server_wrapper.lock().await;
+    if let Some(handle) = &wrapper.handle {
+        // Stop gracefully (true parameter means wait for existing connections)
+        handle.stop(true).await;
+        return Ok("Server stopped!".to_string());
     } else {
-        Err("Server is not running.".into())
+        return Ok("Error while stopping server".to_string());
     }
 }
 
@@ -63,39 +48,79 @@ async fn index_handler() -> actix_web::Result<impl actix_web::Responder> {
 }
 
 pub async fn file_server(
-    _server_mode: ServerMode,
+    server_mode: ServerMode,
     linked_paths: Vec<LinkedPath>,
-    // mut shutdown_rx: Receiver<()>,
+    server_wrapper: Arc<Mutex<ServerWrapper>>,
 ) -> tokio::io::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
-
     log::info!("starting HTTP server at http://localhost:8080");
-    println!("starting HTTP server at http://localhost:8080");
 
-    HttpServer::new(move || {
-        let mut app = App::new().service(index_handler);
-        for linked_path in &linked_paths {
-            let route = format!("/{}", linked_path.name); // Each directory has a unique route
+    match server_mode {
+        ServerMode::LocalHost => {
+            let server = HttpServer::new(move || {
+                let mut app = App::new().service(index_handler);
+                for linked_path in &linked_paths {
+                    let route = format!("/{}", linked_path.name); // Each directory has a unique route
 
-            // Add a Files service for the directory with file listing
-            app = app.service(Files::new(&route, linked_path.path.clone()).show_files_listing());
+                    // Add a Files service for the directory with file listing
+                    app = app
+                        .service(Files::new(&route, linked_path.path.clone()).show_files_listing());
+                }
+                app
+            })
+            .workers(4)
+            .bind(("127.0.0.1", 8080))?
+            .run();
+            let handle = server.handle();
+            {
+                let mut wrapper = server_wrapper.lock().await;
+                wrapper.handle = Some(handle);
+            }
+            server.await?;
         }
-        app
-    })
-    .workers(4)
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+        ServerMode::Internet => {
+            let server = HttpServer::new(move || {
+                let mut app = App::new().service(index_handler);
+                for linked_path in &linked_paths {
+                    let route = format!("/{}", linked_path.name); // Each directory has a unique route
 
-    // match server_mode {
-    //     ServerMode::LocalHost => {
+                    // Add a Files service for the directory with file listing
+                    app = app
+                        .service(Files::new(&route, linked_path.path.clone()).show_files_listing());
+                }
+                app
+            })
+            .workers(4)
+            .bind(("127.0.0.1", 8080))?
+            .run();
+            let handle = server.handle();
+            {
+                let mut wrapper = server_wrapper.lock().await;
+                wrapper.handle = Some(handle);
+            }
+            server.await?;
+        }
+        ServerMode::DarkWeb => {
+            let server = HttpServer::new(move || {
+                let mut app = App::new().service(index_handler);
+                for linked_path in &linked_paths {
+                    let route = format!("/{}", linked_path.name); // Each directory has a unique route
 
-    //     }
-    //     ServerMode::Internet => {
-
-    //     }
-    //     ServerMode::DarkWeb => {
-
-    //     }
-    // }
+                    // Add a Files service for the directory with file listing
+                    app = app
+                        .service(Files::new(&route, linked_path.path.clone()).show_files_listing());
+                }
+                app
+            })
+            .workers(4)
+            .bind(("127.0.0.1", 8080))?
+            .run();
+            let handle = server.handle();
+            {
+                let mut wrapper = server_wrapper.lock().await;
+                wrapper.handle = Some(handle);
+            }
+            server.await?;
+        }
+    }
+    Ok(())
 }

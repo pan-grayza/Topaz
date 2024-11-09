@@ -21,10 +21,14 @@
     let networkName = $page.params.network
     let network = $networks.find((n: Network) => n.name === networkName)
     async function handleServer() {
-        serverStatus = await invoke('start_file_server_command', {
-            serverMode: 'LocalHost',
-            linkedPaths: network?.linked_paths,
-        })
+        if (serverStatus === 'Server started!') {
+            serverStatus = await invoke('stop_file_server_command')
+        } else {
+            serverStatus = await invoke('start_file_server_command', {
+                serverMode: 'LocalHost',
+                linkedPaths: network?.linked_paths,
+            })
+        }
     }
 </script>
 

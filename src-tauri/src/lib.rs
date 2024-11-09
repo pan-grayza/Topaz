@@ -16,14 +16,15 @@ use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::broadcast;
 use tokio::sync::Mutex;
-use types::ServerState;
+use types::ServerWrapper;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .manage(Arc::new(Mutex::new(ServerState::default())))
+        .manage(Arc::new(Mutex::new(ServerWrapper::new())))
         .invoke_handler(tauri::generate_handler![
             remove_network,
             select_directory,
@@ -36,6 +37,7 @@ pub fn run() {
             create_local_network,
         ])
         .setup(|app| {
+            env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
             let app_handle = app.handle().clone();
             // Ensure folders and configs are created
             if !Path::new("../configs").is_dir() {

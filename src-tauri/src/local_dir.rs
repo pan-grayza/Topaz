@@ -67,8 +67,20 @@ fn write_json_to_file(json_value: &Value) -> Result<(), FileError> {
 #[tauri::command]
 pub async fn select_directory(app: AppHandle) -> Result<Option<PathBuf>, Error> {
     let (tx, rx) = oneshot::channel::<Option<PathBuf>>();
-
     // Use pick_folder to allow the user to select a folder
+    #[cfg(target_os = "android")]
+    app.dialog().file().pick_file(move |file_path| {
+        // Capture the selected folder path inside the closure
+        let selected_dir = match file_path {
+            Some(FilePath::Path(path)) => Some(path),
+            Some(FilePath::Url(url)) => url.to_file_path().ok(), // Convert Url to PathBuf
+            None => None,
+        };
+
+        let _ = tx.send(selected_dir);
+    });
+    // Use pick_folder to allow the user to select a folder
+    #[cfg(not(target_os = "android"))]
     app.dialog().file().pick_folder(move |folder_path| {
         // Capture the selected folder path inside the closure
         let selected_dir = match folder_path {
