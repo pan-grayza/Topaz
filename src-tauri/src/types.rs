@@ -42,6 +42,11 @@ impl ServerWrapper {
         ServerWrapper { handle: None }
     }
 }
+#[derive(Serialize, Deserialize, Clone)]
+pub struct LocalServerResponse {
+    pub status: String,
+    pub addresses: Vec<String>,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
