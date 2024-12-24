@@ -1,11 +1,16 @@
 {
-  "linked_paths": [],
+  "linked_paths": [
+    {
+      "name": "Books",
+      "path": "C:\\Users\\zagra\\Books"
+    }
+  ],
   "networks": [
     {
       "linked_paths": [
         {
           "name": "Books",
-          "path": "C:\\Users\\pasna\\Stepan\\Books"
+          "path": "C:\\Users\\zagra\\Books"
         }
       ],
       "name": "Home",

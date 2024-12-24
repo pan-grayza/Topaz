@@ -139,7 +139,7 @@ pub fn link_directory(app: AppHandle, path: String, name: String) -> Result<Stri
 }
 
 #[tauri::command]
-pub fn unlink_directory(app: AppHandle, path_name: String) -> Result<String, FileError> {
+pub fn unlink_directory(app: AppHandle, linked_path_name: String) -> Result<String, FileError> {
     let mut json_value = read_private_config()?;
 
     // Modify the `linked_paths` field without altering other fields
@@ -148,7 +148,7 @@ pub fn unlink_directory(app: AppHandle, path_name: String) -> Result<String, Fil
         let mut linked_paths: Vec<LinkedPath> = serde_json::from_value(linked_paths_value.clone())?;
 
         // Filter out the target item based on `name`
-        linked_paths.retain(|path| path.name != path_name);
+        linked_paths.retain(|path| path.name != linked_path_name);
 
         // Serialize the updated `linked_paths` back into the JSON value
         *linked_paths_value = serde_json::to_value(&linked_paths)?;

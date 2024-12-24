@@ -27,9 +27,7 @@
             .then((paths) => ($linked_paths = paths))
             .catch((e) => console.error(e))
     }
-    async function unlinkDirectory(pathName: string) {
-        await invoke('unlink_directory', { pathName })
-    }
+    
 
     // Titlebar functionality
     const appWindow = getCurrentWindow()
@@ -109,7 +107,7 @@
         <nav
             class="relative flex-col hidden w-40 h-full border-r shrink-0 sm:flex border-neutral-700"
         >
-            <Menu {unlinkDirectory} />
+            <Menu />
         </nav>
 
         <!-- Main content -->
@@ -139,7 +137,7 @@
                 >
                 </button>
                 <div class="z-10 w-3/4 p-4 overflow-auto h-3/4">
-                    <Menu {unlinkDirectory} />
+                    <Menu />
                 </div>
             </div>
         {/if}

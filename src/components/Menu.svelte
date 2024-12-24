@@ -1,20 +1,19 @@
 <script lang="ts">
     import { linked_paths } from 'src/store'
-    interface Props {
-        unlinkDirectory: (name: string) => void;
+    import { invoke } from '@tauri-apps/api/core'
+    async function unlinkDirectory(linkedPathName: string) {
+        await invoke('unlink_directory', { linkedPathName })
     }
-
-    let { unlinkDirectory }: Props = $props();
 </script>
 
 <div class="flex flex-col justify-between w-full h-full p-2">
     <div>
-        <p>Linked vaults</p>
+        <p>Linked Paths</p>
         <ul>
             {#if $linked_paths && $linked_paths.length !== 0}
                 {#each $linked_paths as linked_path}
                     <li>
-                        {linked_path.name}
+                        <a href={`my-linked-paths/${linked_path.name}`}>{linked_path.name}</a>
                         <button
                             onclick={() => unlinkDirectory(linked_path.name)}
                         >

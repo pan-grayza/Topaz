@@ -1103,6 +1103,7 @@
         "npm:@tauri-apps/plugin-shell@2",
         "npm:autoprefixer@^10.4.20",
         "npm:postcss@^8.4.47",
+        "npm:prettierrc@^3.4.2",
         "npm:svelte-check@4",
         "npm:svelte@5",
         "npm:tailwindcss@^3.4.13",

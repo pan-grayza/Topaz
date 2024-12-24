@@ -6,6 +6,7 @@
     import { page } from '$app/stores'
 
     let serverStatus = $state('Not running')
+    let serverAddresses = $state([]) as string[]
 
     async function get_networks() {
         await invoke<Network[]>('read_private_networks')
@@ -21,13 +22,19 @@
     let networkName = $page.params.network
     let network = $networks.find((n: Network) => n.name === networkName)
     async function handleServer() {
+        console.log(serverStatus)
         if (serverStatus === 'Server started!') {
             serverStatus = await invoke('stop_file_server_command')
         } else {
-            serverStatus = await invoke('start_file_server_command', {
-                serverMode: 'LocalHost',
-                linkedPaths: network?.linked_paths,
-            })
+            let { status, addresses } = await invoke<LocalServerResponse>(
+                'start_file_server_command',
+                {
+                    serverMode: 'LocalHost',
+                    linkedPaths: network?.linked_paths,
+                }
+            )
+            serverStatus = status
+            serverAddresses = addresses
         }
     }
 </script>
@@ -41,7 +48,8 @@
             Start server
         {/if}
     </button>
-    {serverStatus}
+    <p>Status:{serverStatus}</p>
+    <p>Addresses{serverAddresses}</p>
     <ul>
         {#if network}
             {#each network.linked_paths as linked_path}

@@ -19,6 +19,11 @@ interface DarkWebNetwork extends BaseNetwork {
     address: string
 }
 
+interface LocalServerResponse {
+    status: string
+    addresses: string[]
+}
+
 // Union of network types
 type Network = LocalNetwork | InternetNetwork | DarkWebNetwork
 
