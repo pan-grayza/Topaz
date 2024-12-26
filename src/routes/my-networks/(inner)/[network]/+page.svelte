@@ -4,6 +4,9 @@
     import { listen } from '@tauri-apps/api/event'
     import { linked_paths, networks } from 'src/store'
     import { page } from '$app/stores'
+    import { goto } from '$app/navigation'
+
+    const currentPath = $page.url.pathname
 
     let serverStatus = $state('Not running')
     let serverAddresses = $state([]) as string[]
@@ -19,6 +22,7 @@
     onMount(() => {
         get_networks()
     })
+    console.log(page)
     let networkName = $page.params.network
     let network = $networks.find((n: Network) => n.name === networkName)
     async function handleServer() {
@@ -49,7 +53,7 @@
         {/if}
     </button>
     <p>Status:{serverStatus}</p>
-    <p>Addresses{serverAddresses}</p>
+    <p>Addresses: {serverAddresses}</p>
     <ul>
         {#if network}
             {#each network.linked_paths as linked_path}
@@ -57,4 +61,5 @@
             {/each}
         {/if}
     </ul>
+    <button onclick={() => goto(`${currentPath}/client`)}>I am client</button>
 </div>

@@ -1,6 +1,7 @@
 // Modules
 mod local_dir;
-mod server;
+mod server_host;
+mod server_client;
 mod types;
 
 // Uses
@@ -9,7 +10,8 @@ use local_dir::{
     select_directory, setup_file_watcher, unlink_directory, PRIVATE_CONFIG_FILE_PATH,
 };
 use serde_json::json;
-use server::{start_file_server_command, stop_file_server_command};
+use server_host::{start_file_server_command, stop_file_server_command};
+use server_client::{get_host_linked_paths};
 use std::fs::*;
 use std::io::prelude::*;
 use std::path::Path;
@@ -35,6 +37,7 @@ pub fn run() {
             stop_file_server_command,
             read_private_networks,
             create_local_network,
+            get_host_linked_paths
         ])
         .setup(|app| {
             env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));

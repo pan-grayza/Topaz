@@ -10,6 +10,12 @@
     let statusLinkedPath = $state('')
     let isHelpMenuOpen = false
 
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        )
+    }
+
     async function select_directory() {
         try {
             // Invoke the Rust command and handle the response
@@ -74,24 +80,34 @@
             />
 
             <div class="relative flex flex-row w-full">
-                <button
-                    class="absolute z-10 w-full h-full"
-                    onclick={(e) => {
-                        e.preventDefault()
-                        select_directory()
-                    }}
-                    aria-label="Select Directory"
-                ></button>
-                <TextInput
-                    placeholder="Click to select Directory"
-                    value={newLinkedPathPath}
-                    disabled
-                    className="w-full rounded-md"
-                />
+                {#if isMobileDevice()}
+                    <TextInput
+                        placeholder="Folder location"
+                        bind:value={newLinkedPathPath}
+                        className="w-full rounded-md"
+                    />
+                {:else}
+                    <button
+                        class="absolute z-10 w-full h-full"
+                        onclick={(e) => {
+                            e.preventDefault()
+                            select_directory()
+                        }}
+                        aria-label="Select Directory"
+                    ></button>
+                    <TextInput
+                        placeholder="Click to select Directory"
+                        value={newLinkedPathPath}
+                        disabled
+                        className="w-full rounded-md"
+                    />
+                {/if}
             </div>
 
             <p>{statusLinkedPath}</p>
-            <Button className="rounded-md " type="submit">Link directory</Button
+            <Button
+                className="rounded-md "
+                type="submit">Link directory</Button
             >
         </form>
     </div>
