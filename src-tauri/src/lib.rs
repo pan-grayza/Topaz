@@ -20,6 +20,8 @@ use std::sync::Arc;
 use tokio::sync::broadcast;
 use std::collections::HashMap;
 use tokio::sync::RwLock;
+use tauri::Manager;
+use std::fs;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -48,23 +50,25 @@ pub fn run() {
 
             env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
             let app_handle = app.handle().clone();
+            let config_dir = Path::new("../configs");
 
             // Ensure folders and configs are created
-
-            if !Path::new("../configs").is_dir() {
-                std::fs::create_dir("../configs").expect("Failed to create configs directory");
+             // Ensure the directory exists
+            if !config_dir.exists() {
+                fs::create_dir_all(&config_dir).expect("Failed to create configs directory");
             }
-            if !Path::new(PRIVATE_CONFIG_FILE_PATH).exists() {
-                let mut file = File::create(PRIVATE_CONFIG_FILE_PATH)
-                    .expect("Failed to create private_config file");
+
+            let config_file_path = config_dir.join("private_config.json");
+
+            // Ensure config file exists
+            if !config_file_path.exists() {
+                let mut file = File::create(&config_file_path).expect("Failed to create private_config file");
                 let data = json!({
                     "linked_paths": [],
-                    "networks" : [],
+                    "networks": [],
                 });
-                let json_content = serde_json::to_string_pretty(&data)
-                    .expect("Failed to serialize local networks");
-                file.write_all(json_content.as_bytes())
-                    .expect("Failed to write to private_config file");
+                let json_content = serde_json::to_string_pretty(&data).expect("Failed to serialize local networks");
+                file.write_all(json_content.as_bytes()).expect("Failed to write to private_config file");
             }
 
             let app_handle_clone = app_handle.clone();

@@ -34,7 +34,7 @@ pub async fn start_file_server_command(
 pub async fn stop_file_server_command(
     network_name: NetworkName,
     id:u64,
-    shutdown_map: State<'_, ShutdownServerMap>,
+    shutdown_map: State<'_, ShutdownServerMap>
 ) -> tauri::Result<()> {
     let mut map = shutdown_map.write().await;
 

@@ -18,6 +18,17 @@
         "core:resources:default",
         "core:menu:default",
         "core:tray:default",
-        "opener:default"
+        "opener:default",
+        "fs:default",
+        {
+            "identifier": "fs:allow-exists",
+            "allow": [{ "path": "$APPDATA/*" }]
+        },
+        "fs:allow-app-write",
+        "fs:allow-app-read-recursive",
+        "fs:scope-appconfig-recursive",
+        "fs:write-all",
+        "fs:read-all",
+        "dialog:default"
     ]
 }

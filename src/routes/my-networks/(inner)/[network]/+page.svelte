@@ -32,7 +32,7 @@
         await invoke('start_file_server_command', {
             serverMode: 'LocalHost',
             network: network,
-        }).then(() => getServers())
+        }).then(async () => await getServers())
     }
     async function stopServer(id: number) {
         await invoke('stop_file_server_command', {
@@ -47,6 +47,7 @@
     <h1>Current Network: {network?.name}</h1>
     <div class="flex flex-col gap-1">
         <Button onClick={startServer}>Start LocalHost server</Button>
+        <Button onClick={startServer}>Start Internet server</Button>
     </div>
     <p>Servers:</p>
     <ul>
